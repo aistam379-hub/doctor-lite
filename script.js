@@ -2583,8 +2583,8 @@ if('serviceWorker'in navigator){navigator.serviceWorker.getRegistrations().then(
     document.addEventListener('DOMContentLoaded', () => {
       // loadData() تُستدعى من onAuth بعد التحقق من تسجيل الدخول
       var _h = location.hash.slice(1);
-      var _validDoc = ['home','calendar','patients','stats'];
-      var _initDoc = _validDoc.includes(_h) ? _h : 'home';
+      var _validDoc = ['patients'];
+      var _initDoc = _validDoc.includes(_h) ? _h : 'patients';
       _histNav = true; setActiveSection(_initDoc); _histNav = false;
       history.replaceState({ section: _initDoc }, '', '#' + _initDoc);
       const _dateStr = today.toLocaleDateString('ar-EG', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
@@ -2592,6 +2592,32 @@ if('serviceWorker'in navigator){navigator.serviceWorker.getRegistrations().then(
       if (sidebarDate) sidebarDate.textContent = _dateStr;
       const mtbDate = document.getElementById('mtbDate');
       if (mtbDate) mtbDate.textContent = _dateStr;
+
+      // مودال إضافة مريض جديد
+      document.getElementById('addNewPatientBtn')?.addEventListener('click', () => document.getElementById('patientBookModal').classList.remove('hidden'));
+      document.getElementById('cancelPatientBtn')?.addEventListener('click', () => document.getElementById('patientBookModal').classList.add('hidden'));
+      document.getElementById('patientBookModal')?.addEventListener('click', (e) => { if (e.target.id === 'patientBookModal') document.getElementById('patientBookModal').classList.add('hidden'); });
+
+      document.getElementById('submitPatientBookBtn')?.addEventListener('click', () => {
+        const name  = document.getElementById('patientBookName').value.trim();
+        const phone = document.getElementById('patientBookPhone').value.trim();
+        const birth = document.getElementById('patientBookBirthDate').value;
+        const addr  = document.getElementById('patientBookAddress').value.trim();
+        const type  = document.getElementById('patientBookVisitType').value;
+        if (!name || !phone || !birth || !type) { showToast('املأ البيانات الأساسية', 'error'); return; }
+        const patientId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const todayLocale = today.toLocaleDateString('ar-EG', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+        const newPatient = {
+          id: patientId, name, phone, birthDate: birth, address: addr,
+          appointments: [{ date: todayStr, visitType: type, dayName: daysAr[today.getDay()] }],
+          firstVisit: todayLocale, lastVisit: todayLocale, totalVisits: 1
+        };
+        savePatient(newPatient).then(() => {
+          showToast('تمت إضافة المريض', 'success');
+          document.getElementById('patientBookModal').classList.add('hidden');
+          ['patientBookName','patientBookPhone','patientBookBirthDate','patientBookAddress','patientBookVisitType'].forEach(id => { document.getElementById(id).value = ''; });
+        }).catch(e => { showToast('فشل الحفظ', 'error'); console.error(e); });
+      });
     });
 
     // ==================== الصفحة الرئيسية ====================
@@ -4149,7 +4175,7 @@ if('serviceWorker'in navigator){navigator.serviceWorker.getRegistrations().then(
       var docName = s.title || 'الطبيب', specialty = s.specialty || '';
       var mobile = s.mobile || '', landline = s.landline || '', address = s.address || '';
       var emblem = '<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 86 C22 64 9 46 9 31 A20 20 0 0 1 50 23 A20 20 0 0 1 91 31 C91 46 78 64 50 86 Z" fill="none" stroke="#0d9488" stroke-width="3.4"/><rect x="44" y="36" width="12" height="30" rx="2" fill="#0d9488"/><rect x="35" y="45" width="30" height="12" rx="2" fill="#0d9488"/></svg>';
-      var brandHtml = '<div class="brand-emblem">' + emblem + '</div><div class="brand-text"><span class="b1">Doc</span><span class="b2">Book</span></div>';
+      var brandHtml = '<img src="brand-logo.png" style="height:76px;width:auto;display:block;" alt="DocBook">';
       var css = '@page{size:A4;margin:0;}'
         + '*{font-family:Cairo,Tajawal,Arial,sans-serif;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
         + 'html,body{margin:0;padding:0;background:#fff;}'

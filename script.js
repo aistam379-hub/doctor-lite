@@ -3027,6 +3027,7 @@ if('serviceWorker'in navigator){navigator.serviceWorker.getRegistrations().then(
           const removeBtn   = document.getElementById('removeLogoBtn');
           previewImg.src = settings.logo; previewImg.classList.remove('hidden');
           previewIcon.classList.add('hidden'); removeBtn.classList.remove('hidden');
+          autoSaveSettings();
         };
         reader.readAsDataURL(file);
       });
